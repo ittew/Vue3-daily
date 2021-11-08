@@ -1,5 +1,5 @@
 <template>
-  <div>hello</div>
+  <router-view></router-view>
 </template>
 
 <script>
@@ -10,8 +10,15 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
+html,
+body {
+  min-height: 100%;
+  overflow-x: hidden;
+  background: #f4f4f4;
+}
 #app {
-  margin-top: 60px;
+  margin: 0 auto;
+  background: #fff;
 }
 </style>
