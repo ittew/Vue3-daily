@@ -1,11 +1,12 @@
 <template>
-
-  <Head :time="today"></Head>
+  <!-- 头部 -->
+  <Head :time="today" />
+  <!-- 轮播图 -->
   <section class="banner-box">
     <van-swipe class="my-swipe" autoplay="3000" indicator-color="white" v-if="bannerList.length"
       lazy-render>
       <van-swipe-item v-for="item in bannerList" :key="item.id">
-        <router-link :to="`/detail/item.id`" class="content">
+        <router-link :to="`/detail/${item.id}`" class="content">
           <img :src="item.image" />
           <div class="mask">
             <h3 class="title">{{item.title}}</h3>
@@ -15,16 +16,34 @@
       </van-swipe-item>
     </van-swipe>
   </section>
+  <!-- 新闻列表 -->
+  <van-skeleton :row="3" v-if="!newsList.length" />
+  <div style="margin-top: 15px" v-else>
+    <section class="news-box" v-for="(item, index) in newsList" :key="index">
+      <van-divider :style="{'padding': '5px 15px'}" v-if="index!==0">
+        {{formatTime(item.date, '{1}月{2}日')}}
+      </van-divider>
+      <Item v-for="item in item.stories" :key="item.id" :data="item" />
+    </section>
+  </div>
+  <!-- 加载更多 -->
+  <div class="lazy-more" v-show="newsList.length" ref="loadMore">
+    <van-loading size="12px">小主,精彩数据准备中...</van-loading>
+  </div>
 </template>
 
 <script>
 import Head from '../components/Head.vue'
-import { onBeforeMount, reactive, toRefs } from 'vue'
+import Item from '../components/NewsItem.vue'
+import { formatTime } from '../assets/utils'
+
+import { onBeforeMount, reactive, toRefs, ref, onMounted } from 'vue'
 import api from '@/api/index'
 export default {
   name: 'Home',
   components: {
-    Head
+    Head,
+    Item
   },
   setup () {
     const state = reactive({
@@ -32,6 +51,7 @@ export default {
       newsList: [],
       bannerList: []
     })
+    const loadMore = ref(null)
     // 第一次加载获取数据
     onBeforeMount(async () => {
       const { date, stories, top_stories } = await api.queryNewsLatest()
@@ -45,9 +65,21 @@ export default {
       // 对于不需要更改或处理的对象 进行Object.freeze冻结  冻结后的对象 Vue2或Vue3不会对其进行劫持或监听
       state.bannerList = Object.freeze(top_stories)
     })
-
+    // 第一次渲染完: 加载更多数据
+    onMounted(async () => {
+      const ob = new IntersectionObserver(async changes => {
+        const item = changes[0]
+        if (item.isIntersecting) {
+          const result = await api.queryNewsBefore(state.newsList[state.newsList.length - 1].date)
+          state.newsList.push(Object.freeze(result))
+        }
+      })
+      ob.observe(loadMore.value)
+    })
     return {
-      ...toRefs(state)
+      ...toRefs(state),
+      formatTime,
+      loadMore
     }
   }
 }
@@ -104,5 +136,24 @@ export default {
       }
     }
   }
+}
+.news-box {
+  background: #fff;
+  .van-divider {
+    margin: 0;
+    font-size: 12px;
+    &:before {
+      display: none;
+    }
+  }
+}
+.van-skeleton {
+  margin: 15px 0;
+}
+.lazy-more {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  background: #f4f4f4;
 }
 </style>

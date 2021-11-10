@@ -11,5 +11,17 @@ export default {
         time
       }
     })
+  },
+  // 获取详情
+  queryNewsInfo (id) {
+    return axios.get('/api/news_info', {
+      params: { id }
+    })
+  },
+  // 获取评论数
+  queryNewsStory (id) {
+    return axios.get('/api/story_extra', {
+      params: { id }
+    })
   }
 }
