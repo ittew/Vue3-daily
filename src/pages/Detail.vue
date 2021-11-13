@@ -1,18 +1,41 @@
 <template>
-  <van-skeleton title :row="5" v-if="!newsInfo"></van-skeleton>
-  <div class='content' v-html="newsInfo.body" v-else></div>
+  <van-skeleton
+    title
+    :row="5"
+    v-if="!newsInfo"
+  ></van-skeleton>
+  <div
+    class='content'
+    v-html="newsInfo.body"
+    v-else
+  ></div>
   <div class="nav-box">
-    <van-icon name="arrow-left" @click="handleBack"></van-icon>
-    <van-icon name="comment-o" :badge="comments"></van-icon>
-    <van-icon name="good-job-o" :badge="popularity"></van-icon>
-    <van-icon name="star-o" color="#1989fa"></van-icon>
-    <van-icon name="share-o" color="#ccc"></van-icon>
+    <van-icon
+      name="arrow-left"
+      @click="handleBack"
+    ></van-icon>
+    <van-icon
+      name="comment-o"
+      :badge="comments"
+    ></van-icon>
+    <van-icon
+      name="good-job-o"
+      :badge="popularity"
+    ></van-icon>
+    <van-icon
+      name="star-o"
+      color="#1989fa"
+    ></van-icon>
+    <van-icon
+      name="share-o"
+      color="#ccc"
+    ></van-icon>
   </div>
 </template>
 
 <script>
 import { useRoute, useRouter } from 'vue-router'
-import { reactive, toRefs, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onUpdated } from 'vue'
+import { reactive, toRefs, onBeforeMount, onBeforeUnmount, onUpdated } from 'vue'
 import api from '@/api/index'
 export default {
   name: 'Detail',

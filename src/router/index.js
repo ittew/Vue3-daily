@@ -4,4 +4,7 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes
 })
+// router.beforeEach((to, from, next) => {
+
+// })
 export default router
