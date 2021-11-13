@@ -1,5 +1,5 @@
 <template>
-  <van-skeleton title :row="5" v-if="newsInfo===null"></van-skeleton>
+  <van-skeleton title :row="5" v-if="!newsInfo"></van-skeleton>
   <div class='content' v-html="newsInfo.body" v-else></div>
   <div class="nav-box">
     <van-icon name="arrow-left" @click="handleBack"></van-icon>
@@ -12,7 +12,7 @@
 
 <script>
 import { useRoute, useRouter } from 'vue-router'
-import { reactive, toRefs, onBeforeMount, onBeforeUnmount } from 'vue'
+import { reactive, toRefs, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onUpdated } from 'vue'
 import api from '@/api/index'
 export default {
   name: 'Detail',
@@ -24,8 +24,11 @@ export default {
       newsInfo: null
     })
     onBeforeMount(async () => {
+      // 获取路由数据id
       const id = useRoute().params.id
+      // 获取文章详情数据
       const result = await api.queryNewsInfo(id)
+      // 获取文章内容中的css样式文件 并添加到页面中
       const link = document.createElement('link')
       link.id = 'link'
       link.rel = 'stylesheet'
@@ -34,14 +37,27 @@ export default {
       link.onload = () => {
         state.newsInfo = result
       }
+      // 获取文章评论数
       const { comments, popularity } = await api.queryNewsStory(id)
       state.popularity = popularity
       state.comments = comments
     })
 
+    onUpdated(async () => {
+      const imgPlaceHolder = document.querySelector('.img-place-holder')
+      if (imgPlaceHolder) {
+        imgPlaceHolder.innerHTML = `<img src="${state.newsInfo.image}">`
+      }
+    })
     const handleBack = () => {
       router.back()
     }
+    // 页面退出移除css
+    onBeforeUnmount(async () => {
+      const link = document.getElementById('link')
+      if (!link) return
+      document.head.removeChild(link)
+    })
     return {
       handleBack,
       ...toRefs(state)
@@ -54,6 +70,13 @@ export default {
 .content {
   padding-bottom: 50px;
   margin-top: 0;
+  /deep/ img {
+    margin: 0 !important;
+    display: inline;
+  }
+  /deep/ .img-place-holder {
+    height: auto;
+  }
 }
 .nav-box {
   position: fixed;
