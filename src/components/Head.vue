@@ -12,8 +12,9 @@
 </template>
 
 <script>
-import { computed, reactive, toRefs } from 'vue'
+import { computed, onBeforeMount } from 'vue'
 import { formatTime } from '../assets/utils'
+import { useStore } from 'vuex'
 export default {
   name: 'Head',
   props: {
@@ -23,9 +24,7 @@ export default {
     }
   },
   setup (props) {
-    const state = reactive({
-      pic: require('@/assets/images/timg.jpg')
-    })
+    const store = useStore()
     const timeNow = computed(() => {
       const time = props.time || null
       const [month, day] = formatTime(time, '{1}-{2}').split('-')
@@ -35,8 +34,19 @@ export default {
         day
       }
     })
+    const timg = require('@/assets/images/timg.jpg')
+    const pic = computed(() => {
+      const { isLogin, info } = store.state
+      if (isLogin && info) return info.pic || timg
+      return timg
+    })
+    onBeforeMount(() => {
+      const { isLogin, info } = store.state
+      if (isLogin === null) store.dispatch('changeIsLoginAsync')
+      if (info === null) store.dispatch('changeInfoAsync')
+    })
     return {
-      ...toRefs(state),
+      pic,
       timeNow
     }
   }
@@ -71,6 +81,7 @@ export default {
     img {
       border-radius: 50%;
       width: 50px;
+      height: 50px;
     }
   }
 }
