@@ -1,50 +1,42 @@
 <template>
-  <van-skeleton
-    title
-    :row="5"
-    v-if="!newsInfo"
-  ></van-skeleton>
-  <div
-    class='content'
-    v-html="newsInfo.body"
-    v-else
-  ></div>
+  <van-skeleton title :row="5" v-if="!newsInfo"></van-skeleton>
+  <div class='content' v-html="newsInfo.body" v-else></div>
   <div class="nav-box">
-    <van-icon
-      name="arrow-left"
-      @click="handleBack"
-    ></van-icon>
-    <van-icon
-      name="comment-o"
-      :badge="comments"
-    ></van-icon>
-    <van-icon
-      name="good-job-o"
-      :badge="popularity"
-    ></van-icon>
-    <van-icon
-      name="star-o"
-      color="#1989fa"
-    ></van-icon>
-    <van-icon
-      name="share-o"
-      color="#ccc"
-    ></van-icon>
+    <van-icon name="arrow-left" @click="handleBack"></van-icon>
+    <van-icon name="comment-o" :badge="comments"></van-icon>
+    <van-icon name="good-job-o" :badge="popularity"></van-icon>
+    <van-icon name="star-o" :color="isStore?'#1989fa':'#000'" @click="storeHandle"></van-icon>
+    <van-icon name="share-o" color="#ccc"></van-icon>
   </div>
 </template>
 
 <script>
 import { useRoute, useRouter } from 'vue-router'
-import { reactive, toRefs, onBeforeMount, onBeforeUnmount, onUpdated } from 'vue'
+import { reactive, toRefs, onBeforeMount, onBeforeUnmount, onUpdated, computed } from 'vue'
 import api from '@/api/index'
+import { useStore } from 'vuex'
+import { Toast } from 'vant'
 export default {
   name: 'Detail',
   setup () {
     const router = useRouter()
+    const route = useRoute()
+    const store = useStore()
     const state = reactive({
       comments: 0,
       popularity: 0,
       newsInfo: null
+    })
+    const id = route.params.id
+    const isStore = computed(() => {
+      let { isLogin, storeList } = store.state
+      if (isLogin) {
+        if (!Array.isArray(storeList)) storeList = []
+        return storeList.some(item => {
+          return +item.news.id === +id
+        })
+      }
+      return false
     })
     onBeforeMount(async () => {
       // 获取路由数据id
@@ -81,8 +73,43 @@ export default {
       if (!link) return
       document.head.removeChild(link)
     })
+    // 更新缓存数据
+    onBeforeMount(async () => {
+      if (store.state.isLogin === null) {
+        await store.dispatch('changeIsLoginAsync')
+      }
+      if (store.state.isLogin) {
+        if (store.state.info === null) store.dispatch('changeInfoAsync')
+        if (store.state.storeList === null) {
+          store.dispatch('changeStoreListAsync')
+        }
+      }
+    })
+    // 收藏
+    const storeHandle = async () => {
+      if (!store.state.isLogin) {
+        Toast('小主, 请先登录哦~')
+        router.push({
+          path: '/login',
+          query: {
+            from: `detail/${id}`
+          }
+        })
+        return
+      }
+      if (isStore.value) return
+      const { code } = await api.store(id)
+      if (+code !== 0) {
+        Toast('小主, 很遗憾, 收藏失败~')
+        return
+      }
+      Toast('小主, 收藏成功~')
+      store.dispatch('changeStoreListAsync')
+    }
     return {
       handleBack,
+      isStore,
+      storeHandle,
       ...toRefs(state)
     }
   }

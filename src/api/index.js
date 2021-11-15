@@ -60,7 +60,7 @@ export default {
   },
   // 移除收藏
   storeRemove (id) {
-    return axios.post('/api/store_remove', {
+    return axios.get('/api/store_remove', {
       params: {
         id
       }
