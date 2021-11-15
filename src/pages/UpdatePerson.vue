@@ -41,6 +41,8 @@ export default {
     })
 
     const submit = async () => {
+      if (state.loading) return
+      state.loading = true
       const { name, pic } = state
       const reg = /^[\w\u4e00-\u9fa5]+$/
       if (!reg.test(name)) {
@@ -59,6 +61,7 @@ export default {
       Toast('小主, 信息修改成功~')
       store.commit('changeInfo', data)
       router.replace('/person')
+      state.loading = false
     }
     return {
       ...toRefs(state),

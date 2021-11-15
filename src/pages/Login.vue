@@ -83,6 +83,7 @@ export default {
       localStorage.setItem('token', token)
       store.commit('changeIsLogin', true)
       store.dispatch('changeInfoAsync')
+      store.commit('changeStoreList', null)
       Toast('恭喜小主, 登录成功~')
       // 挑战到指定地址
       const from = route.query.from
